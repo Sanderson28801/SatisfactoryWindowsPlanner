@@ -47,10 +47,11 @@ public class RecipeData
 
     private readonly List<string>? _producedIn = [];
 
+    // Makes sure that these 3 lists are never null, even if the JSON is missing them. This is a safe default that prevents null reference exceptions.
     [JsonPropertyName("producedIn")]
     public List<string> ProducedIn
     {
-        get => _producedIn ?? []; // If _producedIn is null, return an empty list instead
+        get => _producedIn ?? [];
         init => _producedIn = value;
     }
 
