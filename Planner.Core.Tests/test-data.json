@@ -1,0 +1,46 @@
+{
+  "items": {
+    "Desc_Cement_C": {
+      "slug": "cement",
+      "name": "Cement",
+      "description": "Used for building.",
+      "sinkPoints": 0,
+      "className": "Desc_Cement_C",
+      "stackSize": 500,
+      "energyValue": 0.0,
+      "radioactiveDecay": 10.0,
+      "liquid": false,
+      "fluidColor": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 0
+      }
+    }
+  },
+  "recipes": {
+    "Recipe_Cement_C": {
+      "slug": "recipe-cement",
+      "name": "Cement",
+      "className": "Recipe_Cement_C",
+      "alternate": false,
+      "time": 2.0,
+      "forBuilding": false,
+      "ingredients": [
+        {
+          "item": "Desc_Limestone_C",
+          "amount": 3.0
+        }
+      ],
+      "products": [
+        {
+          "item": "Desc_Cement_C",
+          "amount": 1.0
+        }
+      ],
+      "producedIn": [
+        "Build_ConstructorMk1_C"
+      ]
+    }
+  }
+}

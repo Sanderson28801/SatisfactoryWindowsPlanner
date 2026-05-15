@@ -5,33 +5,33 @@ using System.Text.Json.Serialization;
 
 namespace Planner.Core.Models;
 
-internal class ItemData
+public class ItemData
 {
 
     [JsonPropertyName("slug")]
-    public required string slug { get; init; }
+    public required string Slug { get; init; }
 
     [JsonPropertyName("name")]
-    public required string name { get; init; }
+    public required string Name { get; init; }
 
     [JsonPropertyName("description")]
-    public string description { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
 
     [JsonPropertyName("sinkPoints")]
-    public int sinkPoints { get; init; }
+    public int SinkPoints { get; init; }
 
     [JsonPropertyName("className")]
-    public required string className { get; init; }
+    public required string ClassName { get; init; }
 
     [JsonPropertyName("stackSize")]
-    public int stackSize { get; init; }
+    public int StackSize { get; init; }
 
     [JsonPropertyName("energyValue")]
-    public decimal energyValue { get; init; }
+    public decimal EnergyValue { get; init; }
 
     [JsonPropertyName("radioactiveDecay")]
-    public decimal radioactiveDecay { get; init; }
+    public decimal RadioactiveDecay { get; init; }
 
     [JsonPropertyName("liquid")]
-    public bool liquid { get; init; }
+    public bool Liquid { get; init; }
 }

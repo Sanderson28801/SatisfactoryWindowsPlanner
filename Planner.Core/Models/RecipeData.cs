@@ -5,44 +5,36 @@ using System.Text.Json.Serialization;
 
 namespace Planner.Core.Models;
 
-internal class RecipeData
+public class RecipeData
 {
     [JsonPropertyName("slug")]
-    public required string slug { get; init; }
+    public required string Slug { get; init; }
 
     [JsonPropertyName("name")]
-    public required string name { get; init; }
+    public required string Name { get; init; }
 
     [JsonPropertyName("className")]
-    public required string className { get; init; }
+    public required string ClassName { get; init; }
 
     [JsonPropertyName("alternate")]
-    public bool alternate { get; init; }
+    public bool Alternate { get; init; }
     [JsonPropertyName("time")]
-    public int time { get; init; }
+    public decimal Time { get; init; }
 
     [JsonPropertyName("inHand")]
-    public bool inHand { get; init; }
+    public bool InHand { get; init; }
 
     [JsonPropertyName("forBuilding")]
-    public bool forBuilding { get; init; }
+    public bool ForBuilding { get; init; }
 
     [JsonPropertyName("inWorkshop")]
-    public bool inWorkshop { get; init; }
+    public bool InWorkshop { get; init; }
 
     [JsonPropertyName("inMachine")]
-    public bool inMachine { get; init; }
+    public bool InMachine { get; init; }
 
     [JsonPropertyName("manualTimeMultiplier")]
-    public decimal manualTimeMultiplier { get; init; }
-    [JsonPropertyName("ingredients")]
-    public List<RecipeComponent> Ingredients { get; init; } = [];
-
-    [JsonPropertyName("products")]
-    public List<RecipeComponent> Products { get; init; } = [];
-
-    [JsonPropertyName("producedIn")]
-    public List<string> ProducedIn { get; init; } = [];
+    public decimal ManualTimeMultiplier { get; init; }
 
     [JsonPropertyName("isVariablePower")]
     public bool IsVariablePower { get; init; }
@@ -52,6 +44,31 @@ internal class RecipeData
 
     [JsonPropertyName("maxPower")]
     public int MaxPower { get; init; }
+
+    private readonly List<string>? _producedIn = [];
+
+    [JsonPropertyName("producedIn")]
+    public List<string> ProducedIn
+    {
+        get => _producedIn ?? []; // If _producedIn is null, return an empty list instead
+        init => _producedIn = value;
+    }
+
+    private readonly List<RecipeComponent>? _ingredients = [];
+    [JsonPropertyName("ingredients")]
+    public List<RecipeComponent> Ingredients
+    {
+        get => _ingredients ?? [];
+        init => _ingredients = value;
+    }
+
+    private readonly List<RecipeComponent>? _products = [];
+    [JsonPropertyName("products")]
+    public List<RecipeComponent> Products
+    {
+        get => _products ?? [];
+        init => _products = value;
+    }
 }
 
 
