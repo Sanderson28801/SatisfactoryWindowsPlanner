@@ -9,10 +9,10 @@ internal class ItemData
 {
 
     [JsonPropertyName("slug")]
-    public string slug { get; init; } = string.Empty;
+    public required string slug { get; init; }
 
     [JsonPropertyName("name")]
-    public string name { get; init; } = string.Empty;
+    public required string name { get; init; }
 
     [JsonPropertyName("description")]
     public string description { get; init; } = string.Empty;
@@ -21,16 +21,16 @@ internal class ItemData
     public int sinkPoints { get; init; }
 
     [JsonPropertyName("className")]
-    public string className { get; init; } = string.Empty;
+    public required string className { get; init; }
 
     [JsonPropertyName("stackSize")]
     public int stackSize { get; init; }
 
     [JsonPropertyName("energyValue")]
-    public double energyValue { get; init; }
+    public decimal energyValue { get; init; }
 
     [JsonPropertyName("radioactiveDecay")]
-    public double radioactiveDecay { get; init; }
+    public decimal radioactiveDecay { get; init; }
 
     [JsonPropertyName("liquid")]
     public bool liquid { get; init; }
