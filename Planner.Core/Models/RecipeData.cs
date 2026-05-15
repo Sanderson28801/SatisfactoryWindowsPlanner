@@ -8,7 +8,7 @@ namespace Planner.Core.Models;
 public class RecipeData
 {
     [JsonPropertyName("slug")]
-    public required string Slug { get; init; }
+    public string Slug { get; init; }
 
     [JsonPropertyName("name")]
     public required string Name { get; init; }

@@ -17,4 +17,6 @@ public class IngredientNode : IFactoryNode
     // THE EDGE: How do we get this item? 
     // If this is null, it means it's a raw resource (like Iron Ore) that you must mine.
     public ProductionNode? RecipeUsed { get; set; } // Only accounting for 1 recipe
+
+
 }
