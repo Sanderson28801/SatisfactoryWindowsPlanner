@@ -46,7 +46,15 @@ public class ProductionEngine : IProductionEngine
             TargetItemsPerMinute = targetAmountPerMinute,
             Dependencies = [],
             MachinesRequired = numberOfOperations
-        }
+        };
+        string buildingClassName = currRecipe.ProducedIn.FirstOrDefault() ?? string.Empty;
+
+        // 2. Fetch the building from your NEW repository method
+        BuildingData? building = _dataRepository.GetBuilding(buildingClassName);
+
+        // 3. Calculate power (defaulting to 0 if no building is found)
+        decimal basePower = building?.Metadata.PowerConsumption ?? 0m;
+        productionNode.PowerRequired = basePower * productionNode.MachinesRequired;
 
         //Recursive loop to calculate each ingredient
         foreach (RecipeComponent item in currRecipe.Ingredients)

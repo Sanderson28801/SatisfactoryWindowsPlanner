@@ -13,9 +13,13 @@ public interface IDataRepository
     // Retrieves a specific recipe by its class name
     RecipeData? GetRecipe(string recipeClassName);
 
+    BuildingData? GetBuilding(string buildingClassName);
+
     // Retrieves all recipes that produce a specific item
     IEnumerable<RecipeData> GetRecipesProducing(string itemClassName);
 
     // Useful for populating UI dropdown menus later
     IEnumerable<ItemData> GetAllItems();
+
+
 }

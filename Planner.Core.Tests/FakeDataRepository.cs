@@ -10,22 +10,12 @@ namespace Planner.Core.Tests
     {
         private readonly List<ItemData> _items = [];
         private readonly List<RecipeData> _recipes = [];
+        private readonly List<BuildingData> _buildings = [];
 
         public FakeDataRepository()
         {
             // 1. Raw Resource (No recipe produces this)
-            _items.Add(new ItemData { ClassName = "Desc_Ore", Name = "Iron Ore", Slug = "ore" });
 
-            // 2. Simple 1-to-1 Item
-            _items.Add(new ItemData { ClassName = "Desc_Ingot", Name = "Iron Ingot", Slug = "ingot" });
-            _recipes.Add(new RecipeData
-            {
-                ClassName = "Recipe_Ingot",
-                Name = "Smelt Ingot",
-                Time = 60m, // 1 cycle per minute
-                Products = [new RecipeComponent { ItemClassName = "Desc_Ingot", Amount = 1m }],   // 1 per min
-                Ingredients = [new RecipeComponent { ItemClassName = "Desc_Ore", Amount = 1m }]   // 1 per min
-            });
 
             // 3. Complex Ratio Item (Produces multiple, requires multiple)
             _items.Add(new ItemData { ClassName = "Desc_Wire", Name = "Wire", Slug = "wire" });
@@ -51,10 +41,36 @@ namespace Planner.Core.Tests
                     new RecipeComponent { ItemClassName = "Desc_Ingot", Amount = 3m }  // 15 per min base
                 ]
             });
+            _buildings.Add(new BuildingData
+            {
+                ClassName = "Build_Smelter",
+                Name = "Smelter",
+                Slug = "smelter",
+                Metadata = new BuildingMetadata
+                {
+                    PowerConsumption = 4m,
+                    ManufacturingSpeed = 1m,
+                    PowerConsumptionExponent = 1.6m
+                }
+            });
+            _items.Add(new ItemData { ClassName = "Desc_Ore", Name = "Iron Ore", Slug = "ore" });
+
+            _items.Add(new ItemData { ClassName = "Desc_Ingot", Name = "Iron Ingot", Slug = "ingot" });
+            _recipes.Add(new RecipeData
+            {
+                ClassName = "Recipe_Ingot",
+                Name = "Smelt Ingot",
+                Time = 60m, // 1 cycle per min
+                Products = [new RecipeComponent { ItemClassName = "Desc_Ingot", Amount = 1m }],
+                Ingredients = [new RecipeComponent { ItemClassName = "Desc_Ore", Amount = 1m }],
+                ProducedIn = ["Build_Smelter"] // Links to the Smelter building class!
+            });
         }
 
         public ItemData? GetItem(string itemClassName) => _items.FirstOrDefault(i => i.ClassName == itemClassName);
         public RecipeData? GetRecipe(string recipeClassName) => _recipes.FirstOrDefault(r => r.ClassName == recipeClassName);
+
+        public BuildingData? GetBuilding(string buildingClassName) => _buildings.FirstOrDefault(b => b.ClassName == buildingClassName);
         public IEnumerable<RecipeData> GetRecipesProducing(string itemClassName) => _recipes.Where(r => r.Products.Any(p => p.ItemClassName == itemClassName));
         public IEnumerable<ItemData> GetAllItems() => _items;
     }

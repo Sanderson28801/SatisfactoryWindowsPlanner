@@ -105,5 +105,39 @@ namespace Planner.Core.Tests
             // 30 Ingots/min should require 30 Ore/min
             ingotDep.RecipeUsed!.Dependencies.First().TargetItemsPerMinute.Should().Be(30m);
         }
+        [Fact]
+        public void Calculate_ShouldCorrectlyCalculateMachinesRequired()
+        {
+            // Arrange: Our fake Ingot recipe takes 60 seconds and produces 1 item.
+            // That means 1 machine produces exactly 1 item per minute.
+
+            // Act: Ask for 25 Ingots / min.
+            IngredientNode result = _engine.CalculateProductionTree("Desc_Ingot", 25m);
+
+            // Assert
+            var productionNode = result.RecipeUsed;
+            productionNode.Should().NotBeNull();
+
+            // If this fails, assign your 'numberOfOperations' variable to the node!
+            productionNode!.MachinesRequired.Should().Be(25m);
+        }
+
+        [Fact]
+        public void Calculate_ShouldCorrectlyCalculatePowerRequired()
+        {
+            // Arrange: We need 25 machines (from the math above). 
+            // Our fake Smelter metadata says it uses 4 MW of power per machine.
+
+            // Act
+            IngredientNode result = _engine.CalculateProductionTree("Desc_Ingot", 25m);
+
+            // Assert
+            var productionNode = result.RecipeUsed;
+            productionNode.Should().NotBeNull();
+
+            // 25 machines * 4 MW = 100 MW
+            // If this fails, check your GetBuilding() logic and multiplication!
+            productionNode!.PowerRequired.Should().Be(100m);
+        }
     }
 }

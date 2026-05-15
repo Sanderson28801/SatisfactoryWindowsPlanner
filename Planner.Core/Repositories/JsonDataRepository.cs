@@ -13,6 +13,7 @@ namespace Planner.Core.Repositories
         // We store the data in memory using Dictionaries for O(1) lookups
         private readonly Dictionary<string, ItemData> _items = [];
         private readonly Dictionary<string, RecipeData> _recipes = [];
+        private readonly Dictionary<string, BuildingData> _buildings = [];
 
         // The constructor requires the path to data.json
         public JsonDataRepository(string jsonFilePath)
@@ -35,12 +36,19 @@ namespace Planner.Core.Repositories
                 throw new InvalidOperationException("Failed to parse the Satisfactory JSON data.");
             }
 
-            _items = parsedData.Items;
-
+            if (parsedData is not null)
+            {
+                _items = parsedData.Items;
+            }
 
             if (parsedData.Recipes is not null)
             {
                 _recipes = parsedData.Recipes;
+            }
+
+            if (parsedData.Buildings is not null)
+            {
+                _buildings = parsedData.Buildings;
             }
         }
 
@@ -52,6 +60,11 @@ namespace Planner.Core.Repositories
         public RecipeData? GetRecipe(string recipeClassName)
         {
             return _recipes.TryGetValue(recipeClassName, out var recipe) ? recipe : null;
+        }
+
+        public BuildingData? GetBuilding(string buildingClassName)
+        {
+            return _buildings.TryGetValue(buildingClassName, out var building) ? building : null;
         }
 
         public IEnumerable<RecipeData> GetRecipesProducing(string itemClassName)

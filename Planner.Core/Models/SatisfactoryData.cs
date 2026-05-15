@@ -13,4 +13,6 @@ public class SatisfactoryData
     // You likely have a recipes dictionary further down in the JSON
     [JsonPropertyName("recipes")]
     public Dictionary<string, RecipeData> Recipes { get; init; } = [];
+    [JsonPropertyName("buildings")]
+    public Dictionary<string, BuildingData> Buildings { get; init; } = [];
 }
