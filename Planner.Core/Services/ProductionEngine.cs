@@ -11,7 +11,7 @@ namespace Planner.Core.Services;
 public class ProductionEngine : IProductionEngine
 {
     private readonly IDataRepository _dataRepository;
-
+    HashSet<string> currentPath;
     public ProductionEngine(IDataRepository dataRepository)
     {
         _dataRepository = dataRepository;
@@ -19,10 +19,24 @@ public class ProductionEngine : IProductionEngine
 
     public IngredientNode CalculateProductionTree(string targetItemClassName, decimal targetAmountPerMinute)
     {
+
+        currentPath ??= [];
+
+
+
         ItemData currItem = _dataRepository.GetItem(targetItemClassName);
         if (currItem is null)
         {
             throw new InvalidOperationException($"No item found for class name: {targetItemClassName}");
+        }
+        // Check for circular dependency
+        if (currentPath.Contains(targetItemClassName))
+        {
+            return new IngredientNode
+            {
+                RecipeUsed = null,
+                Item = currItem,
+            };
         }
         RecipeData currRecipe = _dataRepository.GetRecipesProducing(targetItemClassName).FirstOrDefault();
         if (currRecipe is null)
@@ -35,6 +49,9 @@ public class ProductionEngine : IProductionEngine
                 RecipeUsed = null
             };
         }
+
+        currentPath.Add(targetItemClassName);
+
         RecipeComponent mainProduct = currRecipe.Products.Find(p => p.ItemClassName == targetItemClassName);
         decimal amountProducedPerMinute = (60 / currRecipe.Time) * mainProduct.Amount;
         decimal numberOfOperations = targetAmountPerMinute / amountProducedPerMinute;
@@ -71,6 +88,8 @@ public class ProductionEngine : IProductionEngine
             TargetItemsPerMinute = targetAmountPerMinute,
             RecipeUsed = productionNode
         };
+
+        currentPath.Remove(targetItemClassName);
 
         return resultNode;
 

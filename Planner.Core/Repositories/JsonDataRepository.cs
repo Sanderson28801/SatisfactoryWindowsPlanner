@@ -35,21 +35,15 @@ namespace Planner.Core.Repositories
             {
                 throw new InvalidOperationException("Failed to parse the Satisfactory JSON data.");
             }
-
-            if (parsedData is not null)
+            if (parsedData.Items is null || parsedData.Recipes is null || parsedData.Buildings is null)
             {
-                _items = parsedData.Items;
+                throw new InvalidOperationException("Parsed data does not contain any items, recipes, or buildings.");
             }
 
-            if (parsedData.Recipes is not null)
-            {
-                _recipes = parsedData.Recipes;
-            }
+            _items = parsedData.Items;
+            _recipes = parsedData.Recipes;
+            _buildings = parsedData.Buildings;
 
-            if (parsedData.Buildings is not null)
-            {
-                _buildings = parsedData.Buildings;
-            }
         }
 
         public ItemData? GetItem(string itemClassName)
