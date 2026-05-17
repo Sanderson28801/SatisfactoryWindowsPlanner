@@ -15,75 +15,85 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 namespace Planner.UI;
 
+using Planner.UI.ViewModels;
+using System.Windows;
+
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
 public partial class MainWindow : Window
 {
     private ProductionEngine _engine;
+
+    public GraphViewModel Graph { get; } = new GraphViewModel();
+
     public MainWindow()
     {
         InitializeComponent();
 
-        var repo = new JsonDataRepository("Items&Recipes.json");
+
+        DataContext = Graph;
+        var repo = new JsonDataRepository("Data/Items&Recipes.json");
         _engine = new ProductionEngine(repo);
     }
 
     private void CalculateButton_Click(object sender, RoutedEventArgs e)
     {
-        
-        string name = ItemInput.Text;
-        string amountText = AmountInput.Text;
-        if (!decimal.TryParse(amountText, out decimal result))
-        {
-            ErrorBlock.Text = "Error: Please enter a valid number for the amount.";
-            return;
-        }
-        try { 
-            IngredientNode rootNode = _engine.CalculateProductionTree(name, result);
+        if (!decimal.TryParse(AmountInput.Text, out decimal targetAmount)) return;
 
-            FactoryTree.Items.Clear();
-            TreeViewItem visualRoot = BuildVisualTree(rootNode);
-            FactoryTree.Items.Add(visualRoot);
+        try
+        {
+            // 1. Math
+            var rootNode = _engine.CalculateProductionTree(ItemInput.Text, targetAmount);
+
+            // 2. Clear old UI
+            Graph.Nodes.Clear();
+            Graph.Connections.Clear();
+
+            // 3. Flatten and Draw!
+            FlattenTreeToGraph(rootNode);
         }
         catch (Exception ex)
         {
-            ErrorBlock.Text = $"Error: {ex.Message}";
+            MessageBox.Show($"Error: {ex.Message}");
         }
     }
 
-
-    private TreeViewItem BuildVisualTree(IFactoryNode node)
+    // We use 'depth' (X) and 'row' (Y) to push the nodes apart on the canvas
+    private NodeViewModel FlattenTreeToGraph(IFactoryNode currentCoreNode, int depth = 0, int row = 0)
     {
-        // 1. Create the visual container for this specific node
-        TreeViewItem visualItem = new TreeViewItem();
-
-        // 2. Format the text based on what kind of node it is
-        if (node is IngredientNode ingredient)
+        // 1. Create the ViewModel for this node
+        var nodeVM = new NodeViewModel(currentCoreNode)
         {
-            visualItem.Header = $"[{ingredient.TargetItemsPerMinute:0.##}/min] {ingredient.DisplayName}";
-            visualItem.IsExpanded = true; // Automatically open the tree so you don't have to click every arrow
+            // Space them out: 300px horizontal per tier, 150px vertical per row
+            Location = new Point(depth * 300, row * 150)
+        };
 
-            // If this ingredient requires a recipe, recurse down into the recipe
-            if (ingredient.RecipeUsed != null)
-            {
-                visualItem.Items.Add(BuildVisualTree(ingredient.RecipeUsed));
-            }
+        // 2. Add it to the screen
+        Graph.Nodes.Add(nodeVM);
+
+        // 3. Recurse! Pattern match to find the children
+        int childRow = row; // Keep track of rows so siblings don't stack
+
+        if (currentCoreNode is IngredientNode ingredient && ingredient.RecipeUsed != null)
+        {
+            // Ingredients go left-to-right into Recipes (Depth + 1)
+            var childVM = FlattenTreeToGraph(ingredient.RecipeUsed, depth + 1, childRow);
+            Graph.Connections.Add(new ConnectionViewModel(nodeVM, childVM));
         }
-        else if (node is ProductionNode production)
+        else if (currentCoreNode is ProductionNode production)
         {
-            visualItem.Header = $"⚙️ Recipe: {production.DisplayName} " +
-                                $"({production.MachinesRequired:0.##}x Machines, {production.PowerRequired:0.##} MW)";
-            visualItem.IsExpanded = true;
-
-            // Recurse down into all the raw materials needed for this recipe
+            // Recipes split into multiple Ingredients (Depth + 1, different rows)
             foreach (var dependency in production.Dependencies)
             {
-                visualItem.Items.Add(BuildVisualTree(dependency));
+                var childVM = FlattenTreeToGraph(dependency, depth + 1, childRow);
+                Graph.Connections.Add(new ConnectionViewModel(nodeVM, childVM));
+                childRow++; // Push the next dependency down a row
             }
         }
 
-        // 3. Return the fully built visual branch
-        return visualItem;
+        return nodeVM;
     }
+
+
 }
