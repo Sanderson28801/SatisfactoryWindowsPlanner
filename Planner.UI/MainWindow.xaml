@@ -39,7 +39,7 @@
                 <DataTemplate>
                     <nodify:Node Header="{Binding Title}">
                         <StackPanel Margin="10">
-                            <TextBlock Text="{Binding RateText}" FontWeight="Bold" FontSize="14"/>
+                            <TextBlock Text="{Binding RateText}" FontWeight="Bold" FontSize="8"/>
                         </StackPanel>
                     </nodify:Node>
                 </DataTemplate>
@@ -47,7 +47,7 @@
 
             <nodify:NodifyEditor.ConnectionTemplate>
                 <DataTemplate>
-                    <nodify:Connection Source="{Binding Source.Location}" 
+                    <nodify:LineConnection Source="{Binding Source.Location}" 
                                        Target="{Binding Target.Location}" />
                 </DataTemplate>
             </nodify:NodifyEditor.ConnectionTemplate>

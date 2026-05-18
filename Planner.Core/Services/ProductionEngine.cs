@@ -38,7 +38,7 @@ public class ProductionEngine : IProductionEngine
                 Item = currItem,
             };
         }
-        RecipeData currRecipe = _dataRepository.GetRecipesProducing(targetItemClassName).FirstOrDefault();
+        RecipeData currRecipe = _dataRepository.GetRecipeProducing(targetItemClassName);
         if (currRecipe is null)
         {
             // No recipe means this is a raw resource, so we return an IngredientNode with no dependencies

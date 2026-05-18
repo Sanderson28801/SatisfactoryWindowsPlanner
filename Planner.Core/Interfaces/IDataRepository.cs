@@ -15,6 +15,8 @@ public interface IDataRepository
 
     BuildingData? GetBuilding(string buildingClassName);
 
+    RecipeData? GetRecipeProducing(string itemClassName);
+
     // Retrieves all recipes that produce a specific item
     IEnumerable<RecipeData> GetRecipesProducing(string itemClassName);
 

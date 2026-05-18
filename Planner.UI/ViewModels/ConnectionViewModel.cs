@@ -14,8 +14,8 @@ public partial class ConnectionViewModel : ObservableObject
 
     public ConnectionViewModel(NodeViewModel source, NodeViewModel target)
     {
-        Source = source;
-        Target = target;
+        Source = target;
+        Target = source;
     }
 }
 

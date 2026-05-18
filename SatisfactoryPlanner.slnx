@@ -1,5 +1,5 @@
 <Solution>
+  <Project Path="Planner.API/Planner.Api.csproj" Id="bafb40b9-b31f-4555-a825-864a4629fcb4" />
   <Project Path="Planner.Core.Tests/Planner.Core.Tests.csproj" />
   <Project Path="Planner.Core/Planner.Core.csproj" />
-  <Project Path="Planner.UI/Planner.UI.csproj" />
 </Solution>

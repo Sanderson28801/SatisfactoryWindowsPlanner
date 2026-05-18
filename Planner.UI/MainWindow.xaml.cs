@@ -46,12 +46,25 @@ public partial class MainWindow : Window
             // 1. Math
             var rootNode = _engine.CalculateProductionTree(ItemInput.Text, targetAmount);
 
+
             // 2. Clear old UI
             Graph.Nodes.Clear();
             Graph.Connections.Clear();
 
             // 3. Flatten and Draw!
-            FlattenTreeToGraph(rootNode);
+            int startingRow = 0;
+
+            // Make sure the item they typed actually has a recipe
+            if (rootNode.RecipeUsed != null)
+            {
+                FlattenRecipesOnly(rootNode.RecipeUsed, 0, ref startingRow);
+            }
+            else
+            {
+                // Edge Case: They searched for a raw material like "Desc_Ore"
+                var rawVM = new NodeViewModel(rootNode) { Location = new Point(0, 0) };
+                Graph.Nodes.Add(rawVM);
+            }
         }
         catch (Exception ex)
         {
@@ -60,39 +73,51 @@ public partial class MainWindow : Window
     }
 
     // We use 'depth' (X) and 'row' (Y) to push the nodes apart on the canvas
-    private NodeViewModel FlattenTreeToGraph(IFactoryNode currentCoreNode, int depth = 0, int row = 0)
+    // Notice we are passing a ProductionNode (Recipe) now, not the base interface!
+    private NodeViewModel FlattenRecipesOnly(ProductionNode currentRecipe, int depth, ref int globalRow)
     {
-        // 1. Create the ViewModel for this node
-        var nodeVM = new NodeViewModel(currentCoreNode)
+        // 1. Create the ViewModel for THIS recipe
+        var recipeVM = new NodeViewModel(currentRecipe)
         {
-            // Space them out: 300px horizontal per tier, 150px vertical per row
-            Location = new Point(depth * 300, row * 150)
+            // Space them out: 300px horizontally per tier, 150px vertically
+            Location = new Point(depth * 30, globalRow * 15)
         };
 
-        // 2. Add it to the screen
-        Graph.Nodes.Add(nodeVM);
+        Graph.Nodes.Add(recipeVM);
 
-        // 3. Recurse! Pattern match to find the children
-        int childRow = row; // Keep track of rows so siblings don't stack
+        // Push the global row down so the next item drawn doesn't overlap us
+        globalRow++;
 
-        if (currentCoreNode is IngredientNode ingredient && ingredient.RecipeUsed != null)
+        // 2. Loop through the dependencies (Ingredients)
+        foreach (IngredientNode ingredient in currentRecipe.Dependencies)
         {
-            // Ingredients go left-to-right into Recipes (Depth + 1)
-            var childVM = FlattenTreeToGraph(ingredient.RecipeUsed, depth + 1, childRow);
-            Graph.Connections.Add(new ConnectionViewModel(nodeVM, childVM));
-        }
-        else if (currentCoreNode is ProductionNode production)
-        {
-            // Recipes split into multiple Ingredients (Depth + 1, different rows)
-            foreach (var dependency in production.Dependencies)
+            // Does this ingredient have a recipe? (e.g., Iron Ingot -> Smelt Iron Ingot)
+            if (ingredient.RecipeUsed != null)
             {
-                var childVM = FlattenTreeToGraph(dependency, depth + 1, childRow);
-                Graph.Connections.Add(new ConnectionViewModel(nodeVM, childVM));
-                childRow++; // Push the next dependency down a row
+                // RECURSE DIRECTLY INTO THE RECIPE!
+                // We completely ignore drawing the 'ingredient' node.
+                var childRecipeVM = FlattenRecipesOnly(ingredient.RecipeUsed, depth + 1, ref globalRow);
+
+                // Draw a wire connecting the Parent Recipe directly to the Child Recipe
+                Graph.Connections.Add(new ConnectionViewModel(recipeVM, childRecipeVM));
+            }
+            else
+            {
+                // RAW MATERIAL EXCEPTION (e.g., Iron Ore)
+                // It has no recipe, so we MUST draw the ingredient node so the user sees it.
+                var rawMaterialVM = new NodeViewModel(ingredient)
+                {
+                    Location = new Point((depth + 1) * 30, globalRow * 15)
+                };
+
+                Graph.Nodes.Add(rawMaterialVM);
+                Graph.Connections.Add(new ConnectionViewModel(recipeVM, rawMaterialVM));
+
+                globalRow++; // Push the row down for the next item
             }
         }
 
-        return nodeVM;
+        return recipeVM;
     }
 
 
