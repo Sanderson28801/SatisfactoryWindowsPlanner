@@ -49,6 +49,13 @@ const getLayoutedElements = (
   });
   return { nodes, edges };
 };
+// Safe helper to convert "Desc_Cement_C" to "/icons/desc-cement-c_64.png"
+const getIconPath = (itemId: string | undefined): string => {
+  // if (!itemId) return "/icons/placeholder.png";
+
+  const formattedId = itemId.toLowerCase().replaceAll("_", "-");
+  return `/icons/${formattedId}_64.png`;
+};
 
 // --- CUSTOM NODE WITH IMAGES ---
 const RecipeNode = ({ data }: { data: any }) => {
@@ -63,9 +70,7 @@ const RecipeNode = ({ data }: { data: any }) => {
       <div className="flex items-center gap-3">
         {/* Dynamic Image from public/icons/className.png */}
         <img
-          src={`/icons/${data.itemId
-            .toLowerCase()
-            .replaceAll("_", "-")}_64.png`}
+          src={getIconPath(data.itemId)}
           onError={(e) => {
             (e.target as HTMLImageElement).src = "/icons/placeholder.png";
           }}
@@ -246,6 +251,7 @@ export default function App() {
       });
 
       // --- MAP TO VISUAL NODES ---
+      // --- MAP TO VISUAL NODES ---
       const initialNodes: Node[] = finalNodesList.map((n) => {
         const inputs = data.edges
           .filter((e) => e.target === n.id)
@@ -260,13 +266,18 @@ export default function App() {
             amount: e.amount,
           }));
 
+        // FIX: If this is a Recipe node, find the first item it outputs to use as the icon image!
+        const outgoingEdge = data.edges.find((e) => e.source === n.id);
+        const iconItemId =
+          n.type === "Recipe" && outgoingEdge ? outgoingEdge.target : n.id;
+
         return {
           id: n.id,
           type: n.type === "Recipe" ? "recipeNode" : "default",
           position: { x: 0, y: 0 },
           data: {
             label: n.label,
-            itemId: n.id, // Reference for icon image
+            itemId: iconItemId.slice(5),
             machines: n.machines,
             power: n.power,
             inputs,
@@ -338,7 +349,7 @@ export default function App() {
               <div className="flex items-center gap-2 truncate">
                 {selectedItemId && (
                   <img
-                    src={`/icons/${selectedItemId}.png`}
+                    src={getIconPath(selectedItemId)}
                     onError={(e) => {
                       (e.target as any).src = "/icons/placeholder.png";
                     }}
@@ -376,7 +387,7 @@ export default function App() {
                     className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-orange-500 hover:text-white cursor-pointer transition-colors text-sm truncate"
                   >
                     <img
-                      src={`/icons/${item.id}.png`}
+                      src={getIconPath(item.id)}
                       onError={(e) => {
                         (e.target as any).src = "/icons/placeholder.png";
                       }}
