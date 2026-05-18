@@ -18,7 +18,7 @@ builder.Services.AddSingleton<IDataRepository>(new JsonDataRepository(dataPath))
 builder.Services.AddSingleton<IRecipeScorer, StandardRecipeScorer>();
 
 // 3. Load the Engine. "AddScoped" means it creates a fresh engine for every web request
-builder.Services.AddScoped<ProductionEngine>();
+builder.Services.AddScoped<IProductionEngine, ProductionEngine>();
 
 
 
@@ -29,7 +29,8 @@ builder.Services.AddCors(options =>
         // 5173 is the default port for Vite. Update it if your terminal says otherwise!
         policy.WithOrigins("http://localhost:5173")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .SetIsOriginAllowed(origin => true);
     });
 });
 
@@ -41,8 +42,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+
 app.UseCors("AllowReactApp");
 app.UseHttpsRedirection();
+
+
 
 app.UseAuthorization();
 

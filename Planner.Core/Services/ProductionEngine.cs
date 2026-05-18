@@ -21,6 +21,8 @@ public class ProductionEngine : IProductionEngine
     public Result<IngredientNode> CalculateProductionTree(
         string targetItemClassName,
         decimal targetAmountPerMinute,
+        List<string> unlockedAlternates,
+        HeuristicProfile profile,
         FactoryState? state = null,
         HashSet<string>? currentPath = null)
     {
@@ -60,7 +62,7 @@ public class ProductionEngine : IProductionEngine
         }
 
         // 3. SMART SELECTOR
-        Recipe? currRecipe = SelectBestRecipe(targetItemClassName, state);
+        Recipe? currRecipe = SelectBestRecipe(targetItemClassName, state, unlockedAlternates, profile);
         if (currRecipe is null)
         {
             // No recipe means this is a raw resource
@@ -86,7 +88,6 @@ public class ProductionEngine : IProductionEngine
             TargetItemsPerMinute = remainingAmountNeeded,
             Dependencies = new List<IngredientNode>(),
             MachinesRequired = numberOfOperations,
-            // THE REFACTOR WIN: Instant power calculation, no repository lookup!
             PowerRequired = currRecipe.BasePowerDraw * numberOfOperations
         };
 
@@ -108,6 +109,8 @@ public class ProductionEngine : IProductionEngine
             Result<IngredientNode> childIngredientResult = CalculateProductionTree(
                 item.ItemId,
                 amountNeededPerMinute,
+                unlockedAlternates,
+                profile,
                 state,
                 currentPath);
 
@@ -126,16 +129,13 @@ public class ProductionEngine : IProductionEngine
         return Result<IngredientNode>.Success(currentNode);
     }
 
-    private Recipe? SelectBestRecipe(string targetItemId, FactoryState state)
+    private Recipe? SelectBestRecipe(string targetItemId, FactoryState state, List<string> unlockedAlternates, HeuristicProfile profile)
     {
         var validRecipes = _dataRepository.GetRecipesProducing(targetItemId)
-            .Where(r => r.IsAlternate == false)
-            .ToList();
+        .Where(r => r.IsAlternate == false || unlockedAlternates.Contains(r.Id)) // THE MAGIC LINE
+        .ToList();
 
         if (!validRecipes.Any()) return null;
-
-        // For now, we just create a default profile. Later, this will come from the API parameters!
-        var profile = new HeuristicProfile();
 
         Recipe? bestRecipe = null;
         int lowestScore = int.MaxValue;

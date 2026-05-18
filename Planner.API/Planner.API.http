@@ -1,6 +1,23 @@
-@Planner.API_HostAddress = http://localhost:5017
+@Backend_Address = https://localhost:7299
 
-GET {{Planner.API_HostAddress}}/weatherforecast/
-Accept: application/json
+### Test the Happy Path (Calculate Stators)
+POST {{Backend_Address}}/api/factory/calculate
+Content-Type: application/json
 
-###
+{
+  "targetItemId": "Desc_Stator_C",
+  "targetAmountPerMinute": 10.0,
+  "unlockedAlternates": [],
+  "byproductPenaltyWeight": 80,
+  "scavengeRewardWeight": 20
+}
+
+### Test the Sad Path (Make sure error handling works)
+POST {{Backend_Address}}/api/factory/calculate
+Content-Type: application/json
+
+{
+  "targetItemId": "Desc_NonExistentItem_C",
+  "targetAmountPerMinute": 50.0,
+  "unlockedAlternates": []
+}

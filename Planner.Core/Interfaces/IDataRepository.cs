@@ -9,4 +9,5 @@ public interface IDataRepository
     Recipe? GetRecipe(string recipeClassName);
     IEnumerable<Recipe> GetRecipesProducing(string itemClassName);
     IEnumerable<Item> GetAllItems();
+    IEnumerable<Recipe> GetAllRecipes();
 }

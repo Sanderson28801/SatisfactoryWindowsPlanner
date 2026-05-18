@@ -117,5 +117,10 @@ namespace Planner.Core.Repositories
         {
             return _items.Values;
         }
+
+        public IEnumerable<Recipe> GetAllRecipes()
+        {
+            return _recipes.Values;
+        }
     }
 }

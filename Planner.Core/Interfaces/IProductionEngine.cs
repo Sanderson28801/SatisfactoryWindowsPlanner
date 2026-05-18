@@ -12,6 +12,8 @@ public interface IProductionEngine
     Result<IngredientNode> CalculateProductionTree(
         string targetItemClassName,
         decimal targetAmountPerMinute,
+        List<string> unlockedAlternates,
+        HeuristicProfile profile,
         FactoryState? state = null,
         HashSet<string>? currentPath = null);
 }
