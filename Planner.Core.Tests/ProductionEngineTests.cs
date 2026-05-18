@@ -1,5 +1,5 @@
 ﻿using Planner.Core.Domain;
-using Planner.Core.Services; // Assuming your engine is here
+using Planner.Core.Services;
 using Xunit;
 using FluentAssertions;
 using System.Linq;
@@ -12,43 +12,50 @@ namespace Planner.Core.Tests
 
         public ProductionEngineTests()
         {
-            // Inject our perfectly controlled fake data into your real engine
+            // Inject BOTH our fake repository and our new Strategy scorer
             var repo = new FakeDataRepository();
-            _engine = new ProductionEngine(repo);
+            var scorer = new StandardRecipeScorer();
+            _engine = new ProductionEngine(repo, scorer);
         }
 
         [Fact]
         public void Calculate_WithRawResource_ShouldReturnNodeWithNoRecipe()
         {
             // Act: Ask for 10 Iron Ore / min
-            IngredientNode result = _engine.CalculateProductionTree("Desc_Ore", 10m);
+            var result = _engine.CalculateProductionTree("Desc_Ore", 10m);
 
-            // Assert: It should build the node, but stop recursing because Ore has no recipe
-            result.Should().NotBeNull();
-            result.Item.Name.Should().Be("Iron Ore");
-            result.TargetItemsPerMinute.Should().Be(10m);
+            // Assert: Open the Result wrapper first
+            result.IsSuccess.Should().BeTrue();
+            var node = result.Value!;
+
+            node.Should().NotBeNull();
+            node.Item.Name.Should().Be("Iron Ore");
+            node.TargetItemsPerMinute.Should().Be(10m);
 
             // The tree stops here
-            result.RecipeUsed.Should().BeNull();
+            node.RecipeUsed.Should().BeNull();
         }
 
         [Fact]
         public void Calculate_WithSimpleRecipe_ShouldBuildOneLevelTree()
         {
             // Act: Ask for 25 Ingots / min
-            IngredientNode result = _engine.CalculateProductionTree("Desc_Ingot", 25m);
+            var result = _engine.CalculateProductionTree("Desc_Ingot", 25m);
+
+            // Assert: Result Success
+            result.IsSuccess.Should().BeTrue();
+            var node = result.Value!;
 
             // Assert: Root Node (Ingot)
-            result.TargetItemsPerMinute.Should().Be(25m);
-            result.RecipeUsed.Should().NotBeNull();
-            result.RecipeUsed!.Recipe.Name.Should().Be("Smelt Ingot");
+            node.TargetItemsPerMinute.Should().Be(25m);
+            node.RecipeUsed.Should().NotBeNull();
+            node.RecipeUsed!.Recipe.Name.Should().Be("Smelt Ingot");
 
             // Assert: Dependencies (Ore)
-            result.RecipeUsed.Dependencies.Should().HaveCount(1);
-            var oreNode = result.RecipeUsed.Dependencies.First();
+            node.RecipeUsed.Dependencies.Should().HaveCount(1);
+            var oreNode = node.RecipeUsed.Dependencies.First();
 
             oreNode.Item.Name.Should().Be("Iron Ore");
-            // Since the recipe is 1 Ore to 1 Ingot, we should need exactly 25 Ore/min
             oreNode.TargetItemsPerMinute.Should().Be(25m);
             oreNode.RecipeUsed.Should().BeNull();
         }
@@ -56,42 +63,35 @@ namespace Planner.Core.Tests
         [Fact]
         public void Calculate_WithComplexMathRatio_ShouldCalculateCorrectIngredientRates()
         {
-            // The Wire recipe naturally produces 6/min and costs 2 Ingot/min.
-            // If we ask for 15 Wire/min, the engine must scale by a factor of 2.5.
-            // Therefore, we should need exactly 5 Ingot/min (2 * 2.5).
-
             // Act
-            IngredientNode result = _engine.CalculateProductionTree("Desc_Wire", 15m);
+            var result = _engine.CalculateProductionTree("Desc_Wire", 15m);
+            result.IsSuccess.Should().BeTrue();
+            var node = result.Value!;
 
             // Assert Root
-            result.TargetItemsPerMinute.Should().Be(15m);
+            node.TargetItemsPerMinute.Should().Be(15m);
 
             // Assert Dependency Math
-            var ingotNode = result.RecipeUsed!.Dependencies.First();
+            var ingotNode = node.RecipeUsed!.Dependencies.First();
             ingotNode.Item.Name.Should().Be("Iron Ingot");
-
-            // If this fails, your (60 / time * amount) multiplier math is slightly off!
             ingotNode.TargetItemsPerMinute.Should().Be(5m);
         }
 
         [Fact]
         public void Calculate_WithMultipleIngredients_ShouldBranchAndRecurseCorrectly()
         {
-            // The Stator recipe requires BOTH Wire and Ingots.
-            // Base Stator rate: 5/min. 
-            // We ask for 10/min (Multiplier = 2).
-            // Base Wire required: 40/min. Target should be 80.
-            // Base Ingot required: 15/min. Target should be 30.
-
             // Act
-            IngredientNode root = _engine.CalculateProductionTree("Desc_Stator", 10m);
+            var result = _engine.CalculateProductionTree("Desc_Stator", 10m);
+            result.IsSuccess.Should().BeTrue();
+            var root = result.Value!;
 
             // Assert Branches
             var deps = root.RecipeUsed!.Dependencies;
             deps.Should().HaveCount(2);
 
-            var wireDep = deps.First(d => d.Item.ClassName == "Desc_Wire");
-            var ingotDep = deps.First(d => d.Item.ClassName == "Desc_Ingot");
+            // NOTE: Changed ClassName to Id to match our new Domain Model
+            var wireDep = deps.First(d => d.Item.Id == "Desc_Wire");
+            var ingotDep = deps.First(d => d.Item.Id == "Desc_Ingot");
 
             // Check math on the branches
             wireDep.TargetItemsPerMinute.Should().Be(80m);
@@ -102,42 +102,53 @@ namespace Planner.Core.Tests
             wireDep.RecipeUsed!.Recipe.Name.Should().Be("Craft Wire");
 
             // Calculate final raw Ore needed down the Ingot branch
-            // 30 Ingots/min should require 30 Ore/min
             ingotDep.RecipeUsed!.Dependencies.First().TargetItemsPerMinute.Should().Be(30m);
         }
+
         [Fact]
         public void Calculate_ShouldCorrectlyCalculateMachinesRequired()
         {
-            // Arrange: Our fake Ingot recipe takes 60 seconds and produces 1 item.
-            // That means 1 machine produces exactly 1 item per minute.
-
-            // Act: Ask for 25 Ingots / min.
-            IngredientNode result = _engine.CalculateProductionTree("Desc_Ingot", 25m);
+            // Act
+            var result = _engine.CalculateProductionTree("Desc_Ingot", 25m);
+            result.IsSuccess.Should().BeTrue();
 
             // Assert
-            var productionNode = result.RecipeUsed;
+            var productionNode = result.Value!.RecipeUsed;
             productionNode.Should().NotBeNull();
-
-            // If this fails, assign your 'numberOfOperations' variable to the node!
             productionNode!.MachinesRequired.Should().Be(25m);
         }
 
         [Fact]
         public void Calculate_ShouldCorrectlyCalculatePowerRequired()
         {
-            // Arrange: We need 25 machines (from the math above). 
-            // Our fake Smelter metadata says it uses 4 MW of power per machine.
-
             // Act
-            IngredientNode result = _engine.CalculateProductionTree("Desc_Ingot", 25m);
+            var result = _engine.CalculateProductionTree("Desc_Ingot", 25m);
+            result.IsSuccess.Should().BeTrue();
 
             // Assert
-            var productionNode = result.RecipeUsed;
+            var productionNode = result.Value!.RecipeUsed;
             productionNode.Should().NotBeNull();
 
             // 25 machines * 4 MW = 100 MW
-            // If this fails, check your GetBuilding() logic and multiplication!
+            // Note: The math hasn't changed, but it's now using BasePowerDraw under the hood!
             productionNode!.PowerRequired.Should().Be(100m);
+        }
+
+        [Fact]
+        public void CalculateTree_WhenItemDoesNotExist_ReturnsFailureResult()
+        {
+            // Arrange
+            var mockRepo = new FakeDataRepository();
+            var scorer = new StandardRecipeScorer();
+            var engine = new ProductionEngine(mockRepo, scorer); // Inject both here too!
+
+            // Act (Try to calculate a fake item)
+            var result = engine.CalculateProductionTree("Invalid_Item", 100);
+
+            // Assert (Verify the FedEx box is marked as a failure)
+            Assert.False(result.IsSuccess);
+            Assert.Null(result.Value);
+            Assert.Contains("No item found", result.ErrorMessage);
         }
     }
 }

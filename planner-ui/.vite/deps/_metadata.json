@@ -1,0 +1,48 @@
+{
+  "hash": "21c5d7bc",
+  "configHash": "cf887886",
+  "lockfileHash": "3a1b84ef",
+  "browserHash": "c4cf05f7",
+  "optimized": {
+    "dagre": {
+      "src": "../../node_modules/dagre/index.js",
+      "file": "dagre.js",
+      "fileHash": "9a5b37fd",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "b49b26c5",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "9113591f",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "784f6289",
+      "needsInterop": true
+    },
+    "reactflow": {
+      "src": "../../node_modules/reactflow/dist/esm/index.mjs",
+      "file": "reactflow.js",
+      "fileHash": "cb01589a",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-CegL5Rro": {
+      "file": "chunk-CegL5Rro.js",
+      "isDynamicEntry": false
+    },
+    "react-dom-Cs0gxR7z": {
+      "file": "react-dom-Cs0gxR7z.js",
+      "isDynamicEntry": false
+    }
+  }
+}

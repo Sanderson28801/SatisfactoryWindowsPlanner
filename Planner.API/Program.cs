@@ -15,9 +15,11 @@ string dataPath = Path.Combine(builder.Environment.ContentRootPath, "Data", "Ite
 
 // 2. Load the Repository ONCE as a Singleton (it stays in memory forever)
 builder.Services.AddSingleton<IDataRepository>(new JsonDataRepository(dataPath));
+builder.Services.AddSingleton<IRecipeScorer, StandardRecipeScorer>();
 
 // 3. Load the Engine. "AddScoped" means it creates a fresh engine for every web request
 builder.Services.AddScoped<ProductionEngine>();
+
 
 
 builder.Services.AddCors(options =>

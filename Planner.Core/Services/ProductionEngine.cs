@@ -10,13 +10,15 @@ namespace Planner.Core.Services;
 public class ProductionEngine : IProductionEngine
 {
     private readonly IDataRepository _dataRepository;
+    private readonly IRecipeScorer _recipeScorer;
 
-    public ProductionEngine(IDataRepository dataRepository)
+    public ProductionEngine(IDataRepository dataRepository, IRecipeScorer recipeScorer)
     {
         _dataRepository = dataRepository;
+        _recipeScorer = recipeScorer;
     }
 
-    public IngredientNode CalculateProductionTree(
+    public Result<IngredientNode> CalculateProductionTree(
         string targetItemClassName,
         decimal targetAmountPerMinute,
         FactoryState? state = null,
@@ -29,7 +31,7 @@ public class ProductionEngine : IProductionEngine
         Item? currItem = _dataRepository.GetItem(targetItemClassName);
         if (currItem is null)
         {
-            throw new InvalidOperationException($"No item found for class name: {targetItemClassName}");
+            return Result<IngredientNode>.Failure($"No item found for class name: {targetItemClassName}");
         }
 
         IngredientNode currentNode = new IngredientNode
@@ -43,7 +45,7 @@ public class ProductionEngine : IProductionEngine
         if (currentPath.Contains(targetItemClassName))
         {
             currentNode.TargetItemsPerMinute = targetAmountPerMinute;
-            return currentNode;
+            return Result<IngredientNode>.Success(currentNode);
         }
 
         // 2. CHECK THE POOL FIRST! (The Heuristic Scavenger)
@@ -54,7 +56,7 @@ public class ProductionEngine : IProductionEngine
 
         if (remainingAmountNeeded <= 0)
         {
-            return currentNode;
+            return Result<IngredientNode>.Success(currentNode);
         }
 
         // 3. SMART SELECTOR
@@ -62,7 +64,7 @@ public class ProductionEngine : IProductionEngine
         if (currRecipe is null)
         {
             // No recipe means this is a raw resource
-            return currentNode;
+            return Result<IngredientNode>.Success(currentNode);
         }
 
         currentPath.Add(targetItemClassName);
@@ -71,7 +73,7 @@ public class ProductionEngine : IProductionEngine
         RecipeQuantity? mainProduct = currRecipe.Products.Find(p => p.ItemId == targetItemClassName);
         if (mainProduct == null)
         {
-            return currentNode;
+            return Result<IngredientNode>.Failure("Main product not found in recipe");
         }
 
         decimal amountProducedPerMinute = (60m / currRecipe.CraftingTimeSeconds) * mainProduct.Amount;
@@ -103,53 +105,45 @@ public class ProductionEngine : IProductionEngine
         {
             decimal amountNeededPerMinute = item.Amount * numberOfOperations * minuteToTimeRatio;
 
-            IngredientNode childIngredientNode = CalculateProductionTree(
+            Result<IngredientNode> childIngredientResult = CalculateProductionTree(
                 item.ItemId,
                 amountNeededPerMinute,
                 state,
                 currentPath);
 
-            productionNode.Dependencies.Add(childIngredientNode);
+            if (!childIngredientResult.IsSuccess)
+            {
+                // If a child fails (e.g., missing data), bubble the failure up
+                return Result<IngredientNode>.Failure($"Failed to calculate ingredient {item.ItemId}: {childIngredientResult.ErrorMessage}");
+            }
+
+            productionNode.Dependencies.Add(childIngredientResult.Value!);
         }
 
         currentNode.RecipeUsed = productionNode;
         currentPath.Remove(targetItemClassName);
 
-        return currentNode;
+        return Result<IngredientNode>.Success(currentNode);
     }
 
-    private Recipe? SelectBestRecipe(string targetItemClassName, FactoryState state)
+    private Recipe? SelectBestRecipe(string targetItemId, FactoryState state)
     {
-        // Now safely expecting an empty enumerable for raw materials instead of null
-        var validRecipes = _dataRepository.GetRecipesProducing(targetItemClassName)
+        var validRecipes = _dataRepository.GetRecipesProducing(targetItemId)
             .Where(r => r.IsAlternate == false)
             .ToList();
 
-        if (!validRecipes.Any()) return null; // It's a raw material
+        if (!validRecipes.Any()) return null;
+
+        // For now, we just create a default profile. Later, this will come from the API parameters!
+        var profile = new HeuristicProfile();
 
         Recipe? bestRecipe = null;
         int lowestScore = int.MaxValue;
 
         foreach (var recipe in validRecipes)
         {
-            int score = 0;
-
-            foreach (var product in recipe.Products)
-            {
-                if (product.ItemId != targetItemClassName)
-                {
-                    score += 80;
-                }
-            }
-
-            foreach (var ingredient in recipe.Ingredients)
-            {
-                if (state.AvailableByproducts.ContainsKey(ingredient.ItemId)
-                    && state.AvailableByproducts[ingredient.ItemId] > 0)
-                {
-                    score -= 20;
-                }
-            }
+            // THE MAGIC: The engine delegates the math to the Strategy!
+            int score = _recipeScorer.ScoreRecipe(recipe, state, profile, targetItemId);
 
             if (score < lowestScore)
             {

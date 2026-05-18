@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Planner.Api.Services;
+using Planner.Core.Domain;
 using Planner.Core.Services;
+using Planner.Core.Models;
 
 namespace Planner.Api.Controllers;
 
@@ -24,10 +26,10 @@ public class FactoryController : ControllerBase
         try
         {
             // 1. Call your pristine, untouched engine
-            var rootNode = _engine.CalculateProductionTree(item, amount);
+            Result<IngredientNode> rootNode = _engine.CalculateProductionTree(item, amount);
 
             // 2. (We will write the DTO translation here in the next step!)
-            var safeGraphDto = GraphConverter.FlattenAndConsolidate(rootNode);
+            var safeGraphDto = GraphConverter.FlattenAndConsolidate(rootNode.Value);
 
             // 3. Return a 200 OK status code, with the data inside
             return Ok(safeGraphDto);
