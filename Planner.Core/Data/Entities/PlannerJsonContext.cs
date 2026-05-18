@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using Planner.Core.Data.Entities;
+using System.Text.Json.Serialization;
 
 namespace Planner.Core.Models
 {

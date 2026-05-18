@@ -1,5 +1,5 @@
-﻿using Planner.Core.Interfaces;
-using Planner.Core.Models;
+﻿using Planner.Core.Data.Entities;
+using Planner.Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,7 +12,7 @@ public class IngredientNode : IFactoryNode
     public decimal TargetItemsPerMinute { get; set; }
 
     // We store the actual ItemData so the UI has access to descriptions, liquid status, etc.
-    public required ItemData Item { get; set; }
+    public required Item Item { get; set; }
 
     // THE EDGE: How do we get this item? 
     // If this is null, it means it's a raw resource (like Iron Ore) that you must mine.

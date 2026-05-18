@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Planner.Core.Models
+namespace Planner.Core.Data.Entities
 {
     public record BuildingData
     {

@@ -1,5 +1,5 @@
-﻿using Planner.Core.Interfaces;
-using Planner.Core.Models;
+﻿using Planner.Core.Data.Entities;
+using Planner.Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,7 +12,7 @@ public class ProductionNode : IFactoryNode
     public decimal TargetItemsPerMinute { get; set; }
 
     // We store the actual RecipeData so the engine can look at its base time/amounts
-    public required RecipeData Recipe { get; set; }
+    public required Recipe Recipe { get; set; }
 
     // Core Math Outputs
     public decimal MachinesRequired { get; set; }

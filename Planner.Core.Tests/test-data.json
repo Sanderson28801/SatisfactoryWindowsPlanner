@@ -42,5 +42,15 @@
         "Build_ConstructorMk1_C"
       ]
     }
+  },
+  "buildings": {
+    "Build_ConstructorMk1_C": {
+      "slug": "constructor",
+      "name": "Constructor",
+      "className": "Build_ConstructorMk1_C",
+      "metadata": {
+        "powerConsumption": 4.0
+      }
+    }
   }
 }
