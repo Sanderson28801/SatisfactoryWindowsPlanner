@@ -19,7 +19,7 @@ namespace Planner.Api.Services
 
             void TraverseIngredient(IngredientNode currItem, string? consumerRecipeId)
             {
-                string itemId = "item_" + currItem.Item.ClassName;
+                string itemId = "item_" + currItem.Item.Id;
 
                 // 1. Consolidate the Item Node
                 if (!nodes.ContainsKey(itemId))
@@ -48,7 +48,7 @@ namespace Planner.Api.Services
 
             void TraverseRecipe(ProductionNode currRecipe, string producedItemId, decimal amountProducedForThisPath)
             {
-                string recipeId = "recipe_" + currRecipe.Recipe.ClassName;
+                string recipeId = "recipe_" + currRecipe.Recipe.Id;
 
                 // 1. Consolidate the Recipe Node
                 if (!nodes.ContainsKey(recipeId))

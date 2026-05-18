@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json.Serialization;
 
-namespace Planner.Core.Models;
+namespace Planner.Core.Data.Entities;
 
 public class ItemData
 {

@@ -1,5 +1,5 @@
-﻿using Planner.Core.Interfaces;
-using Planner.Core.Models;
+﻿using Planner.Core.Data.Entities;
+using Planner.Core.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
 
