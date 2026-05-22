@@ -1,10 +1,10 @@
-# ⚙️ FICSIT Assembly Planner
+# FICSIT Assembly Planner
 
 A high-performance, graph-based factory production planner for *Satisfactory*. 
 
 The FICSIT Assembly Planner calculates exact machine counts, power requirements, and logistical routing for any target item. It visualizes the production line as a clean, interactive Directed Acyclic Graph (DAG), automatically compressing bypassed nodes and calculating bridging routes.
 
-## ✨ Features
+## Features
 
 * **Interactive Graph Visualization:** Built on `reactflow`, providing a drag-and-drop, zoomable canvas of your factory layout.
 * **Smart Auto-Layout:** Integrates `dagre` to automatically structure complex production chains from left to right, minimizing visual clutter.
@@ -12,7 +12,7 @@ The FICSIT Assembly Planner calculates exact machine counts, power requirements,
 * **Yield & Power Analytics:** Hover over any node to see exact input/output ratios, machine counts, and MW power consumption.
 * **Graph Compression:** Automatically identifies and bridges intermediate items to keep the visual diagram clean and focused on actual machine setup.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 * **Frontend Framework:** React 18
 * **Language:** TypeScript
@@ -21,7 +21,7 @@ The FICSIT Assembly Planner calculates exact machine counts, power requirements,
 * **Graph Math & Layout:** Dagre
 * **Backend API:** .NET / C# (Expected at `https://localhost:7299`)
 
-## 🏗️ Architecture
+## Architecture
 
 This application is built with strict separation of concerns to maintain a highly scalable codebase:
 
